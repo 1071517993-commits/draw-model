@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
-
+try:
 st.title("⚽ AI平局预测系统")
 
 # =========================
@@ -75,3 +75,5 @@ picks = df[
 # 展示
 # =========================
 st.dataframe(df[['match','prob_home','prob_draw','prob_away']])
+except Exception as e:
+    st.error(f"程序报错：{e}")
