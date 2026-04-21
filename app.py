@@ -114,26 +114,31 @@ try:
             'EV_away': '客胜'
         })
 
-        # =========================
-        # 7️⃣ 筛选策略（核心）
-        # =========================
-        picks = df[df['best_EV'] > 1.05]
+    # ===== 强信号评分 =====
+    df['signal_score'] = 0
+    
+    df.loc[df['best_EV'] > 1.08, 'signal_score'] += 2
+    df.loc[df['odds_std'] < 0.12, 'signal_score'] += 1
+    df.loc[abs(df['ah_diff']) < 0.25, 'signal_score'] += 1
+    df.loc[df['ou_diff'] < 0, 'signal_score'] += 1
+    
+    # ===== 筛选 =====
+    picks = df[df['signal_score'] >= 3]
 
-        # =========================
-        # 8️⃣ 展示
-        # =========================
-        show_cols = [
-            'match',  # 👈 加这一行
-            'prob_home','prob_draw','prob_away',
-            'EV_home','EV_draw','EV_away',
-            'best_pick','best_EV'
-        ]
+    # 排序
+    picks = picks.sort_values(by='signal_score', ascending=False)
+    
+    # 展示
+    show_cols = [
+        'match',
+        'best_pick',
+        'best_EV',
+        'signal_score',
+        'prob_home','prob_draw','prob_away'
+    ]
 
-        st.subheader("📊 全部比赛预测")
-        st.dataframe(df[show_cols])
-
-        st.subheader("🔥 推荐比赛（高EV）")
-        st.dataframe(picks[show_cols])
-
+    st.subheader("🔥 强信号推荐")
+    st.dataframe(picks[show_cols])
+    
 except Exception as e:
     st.error(f"程序报错：{e}")
