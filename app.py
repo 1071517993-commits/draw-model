@@ -2,15 +2,22 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 
-st.title("⚽ 平局预测系统")
+st.title("⚽ AI平局预测系统")
 
-df = pd.DataFrame({
-    "match": ["A vs B","C vs D"],
-    "odds_home":[2.5,1.8],
-    "odds_draw":[3.1,3.3],
-    "odds_away":[2.8,4.2]
-})
+# =========================
+# 上传数据
+# =========================
+uploaded_file = st.file_uploader("上传比赛数据CSV")
 
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+else:
+    st.warning("请上传CSV文件（包含赔率数据）")
+    st.stop()
+
+# =========================
+# 特征工程
+# =========================
 df['p_home'] = 1 / df['odds_home']
 df['p_draw'] = 1 / df['odds_draw']
 df['p_away'] = 1 / df['odds_away']
@@ -20,7 +27,30 @@ df['p_draw_norm'] = df['p_draw'] / p_sum
 
 df['odds_std'] = df[['odds_home','odds_draw','odds_away']].std(axis=1)
 
-df['prob'] = df['p_draw_norm'] * 0.6 + (1 / (1 + df['odds_std'])) * 0.4
+# =========================
+# 模型（简化版）
+# =========================
+df['prob'] = (
+    df['p_draw_norm'] * 0.65 +
+    (1 / (1 + df['odds_std'])) * 0.35
+)
+
 df['EV'] = df['prob'] * df['odds_draw']
 
-st.dataframe(df)
+# =========================
+# 推荐筛选
+# =========================
+picks = df[
+    (df['prob'] > 0.35) &
+    (df['odds_draw'].between(2.8, 3.3)) &
+    (df['EV'] > 1.02)
+]
+
+# =========================
+# 展示
+# =========================
+st.subheader("📊 所有比赛")
+st.dataframe(df[['match','odds_draw','prob','EV']])
+
+st.subheader("🔥 推荐平局")
+st.dataframe(picks[['match','odds_draw','prob','EV']])
