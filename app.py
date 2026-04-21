@@ -58,6 +58,11 @@ df['prob_home'] = probs[:,0]
 df['prob_draw'] = probs[:,1]
 df['prob_away'] = probs[:,2]
 # =========================
+# 🔥 加入EV判断
+df['EV_home'] = df['prob_home'] * df['odds_home']
+df['EV_draw'] = df['prob_draw'] * df['odds_draw']
+df['EV_away'] = df['prob_away'] * df['odds_away']
+# =========================
 # 推荐筛选
 # =========================
 picks = df[
@@ -69,8 +74,4 @@ picks = df[
 # =========================
 # 展示
 # =========================
-st.subheader("📊 所有比赛")
-st.dataframe(df[['match','odds_draw','prob','EV']])
-
-st.subheader("🔥 推荐平局")
-st.dataframe(picks[['match','odds_draw','prob','EV']])
+st.dataframe(df[['match','prob_home','prob_draw','prob_away']])
