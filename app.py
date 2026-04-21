@@ -123,6 +123,7 @@ try:
         # 8️⃣ 展示
         # =========================
         show_cols = [
+            'match',  # 👈 加这一行
             'prob_home','prob_draw','prob_away',
             'EV_home','EV_draw','EV_away',
             'best_pick','best_EV'
