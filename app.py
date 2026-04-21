@@ -34,10 +34,20 @@ import joblib
 
 model = joblib.load("model.pkl")
 
-X = df[['odds_home','odds_draw','odds_away']]
-df['prob'] = model.predict_proba(X)[:,1]
+# 同样的特征工程
+df['p_home'] = 1 / df['odds_home']
+df['p_draw'] = 1 / df['odds_draw']
+df['p_away'] = 1 / df['odds_away']
 
-df['EV'] = df['prob'] * df['odds_draw']
+p_sum = df['p_home'] + df['p_draw'] + df['p_away']
+df['p_draw_norm'] = df['p_draw'] / p_sum
+
+df['odds_diff'] = abs(df['odds_home'] - df['odds_away'])
+df['odds_std'] = df[['odds_home','odds_draw','odds_away']].std(axis=1)
+
+X = df[['odds_home','odds_draw','odds_away','p_draw_norm','odds_diff','odds_std']]
+
+df['prob'] = model.predict_proba(X)[:,1]
 
 # =========================
 # 推荐筛选
