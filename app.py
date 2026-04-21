@@ -53,9 +53,9 @@ df['prob'] = model.predict_proba(X)[:,1]
 # 推荐筛选
 # =========================
 picks = df[
-    (df['prob'] > 0.35) &
+    (df['prob'] > 0.38) &
     (df['odds_draw'].between(2.8, 3.3)) &
-    (df['EV'] > 1.02)
+    (df['odds_diff'] < 1.2)
 ]
 
 # =========================
