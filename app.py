@@ -130,14 +130,19 @@ try:
         
         # 展示
         show_cols = [
-            'match',
+        'match',
             'best_pick',
             'best_EV',
-            'signal_score',
-            'prob_home','prob_draw','prob_away'
+            'prob_home','prob_draw','prob_away',
+            'EV_home','EV_draw','EV_away',
+            'signal_score'
         ]
 
-        st.subheader("🔥 强信号推荐")
+        st.subheader("🔥 强信号推荐（可直接参考下注）")
+
+        # 排序
+        picks = picks.sort_values(by='best_EV', ascending=False)
+
         st.dataframe(picks[show_cols])
     
 except Exception as e:
