@@ -30,10 +30,12 @@ df['odds_std'] = df[['odds_home','odds_draw','odds_away']].std(axis=1)
 # =========================
 # 模型（简化版）
 # =========================
-df['prob'] = (
-    df['p_draw_norm'] * 0.65 +
-    (1 / (1 + df['odds_std'])) * 0.35
-)
+import joblib
+
+model = joblib.load("model.pkl")
+
+X = df[['odds_home','odds_draw','odds_away']]
+df['prob'] = model.predict_proba(X)[:,1]
 
 df['EV'] = df['prob'] * df['odds_draw']
 
