@@ -34,21 +34,29 @@ import joblib
 
 model = joblib.load("model.pkl")
 
-# 同样的特征工程
+# 特征工程（必须一致）
 df['p_home'] = 1 / df['odds_home']
 df['p_draw'] = 1 / df['odds_draw']
 df['p_away'] = 1 / df['odds_away']
 
 p_sum = df['p_home'] + df['p_draw'] + df['p_away']
+df['p_home_norm'] = df['p_home'] / p_sum
 df['p_draw_norm'] = df['p_draw'] / p_sum
+df['p_away_norm'] = df['p_away'] / p_sum
 
 df['odds_diff'] = abs(df['odds_home'] - df['odds_away'])
 df['odds_std'] = df[['odds_home','odds_draw','odds_away']].std(axis=1)
 
-X = df[['odds_home','odds_draw','odds_away','p_draw_norm','odds_diff','odds_std']]
+X = df[['odds_home','odds_draw','odds_away',
+        'p_home_norm','p_draw_norm','p_away_norm',
+        'odds_diff','odds_std']]
 
-df['prob'] = model.predict_proba(X)[:,1]
+# 🔥 三分类概率
+probs = model.predict_proba(X)
 
+df['prob_home'] = probs[:,0]
+df['prob_draw'] = probs[:,1]
+df['prob_away'] = probs[:,2]
 # =========================
 # 推荐筛选
 # =========================
