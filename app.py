@@ -158,6 +158,27 @@ with tab2:
         df.loc[df['low_scoring'] == 1, 'signal_score'] += 1
 
         # =========================
+        # 凯利
+        # =========================
+        bankroll = st.number_input("💰 当前资金", value=1000)
+        kelly_fraction = 0.25
+
+        def kelly(p, odds):
+            b = odds - 1
+            q = 1 - p
+            k = (b * p - q) / b
+            return max(k, 0)
+
+        df['kelly'] = df.apply(lambda x: {
+            '主胜': kelly(x['prob_home'], x['AvgCH']),
+            '平局': kelly(x['prob_draw'], x['AvgCD']),
+            '客胜': kelly(x['prob_away'], x['AvgCA'])
+        }[x['best_pick']], axis=1)
+
+        df['bet_size'] = df['kelly'] * kelly_fraction * bankroll
+        df['bet_size'] = df['bet_size'].clip(upper=bankroll * 0.1)
+
+        # =========================
         # 今日最优组合
         # =========================
 
@@ -179,27 +200,6 @@ with tab2:
 
         # 控制最多4场
         combo = combo.head(4)
-        
-        # =========================
-        # 凯利
-        # =========================
-        bankroll = st.number_input("💰 当前资金", value=1000)
-        kelly_fraction = 0.25
-
-        def kelly(p, odds):
-            b = odds - 1
-            q = 1 - p
-            k = (b * p - q) / b
-            return max(k, 0)
-
-        df['kelly'] = df.apply(lambda x: {
-            '主胜': kelly(x['prob_home'], x['AvgCH']),
-            '平局': kelly(x['prob_draw'], x['AvgCD']),
-            '客胜': kelly(x['prob_away'], x['AvgCA'])
-        }[x['best_pick']], axis=1)
-
-        df['bet_size'] = df['kelly'] * kelly_fraction * bankroll
-        df['bet_size'] = df['bet_size'].clip(upper=bankroll * 0.1)
 
         # =========================
         # 展示结果
