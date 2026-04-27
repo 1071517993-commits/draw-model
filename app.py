@@ -5,7 +5,7 @@ import joblib
 import os
 
 st.set_page_config(layout="wide")
-st.title("⚽ AI足彩交易系统 V3 Pro（Excel模式）")
+st.title("⚽")
 
 # =========================
 # 加载模型
