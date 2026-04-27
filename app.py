@@ -4,13 +4,20 @@ import joblib
 import os
 import urllib.request
 from io import StringIO
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+
+# Selenium 可选导入（用于 OddsPortal 实时抓取）
+SELENIUM_AVAILABLE = False
+try:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from webdriver_manager.chrome import ChromeDriverManager
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    pass
 
 st.set_page_config(layout="wide")
 st.title("⚽ AI足彩交易系统 V3 Pro（Excel模式）")
@@ -140,6 +147,9 @@ def fetch_football_data(league_name):
 # =========================
 def scrape_oddsportal(league_url=None):
     """从 oddsportal.com 抓取赔率数据"""
+    if not SELENIUM_AVAILABLE:
+        return None, "Selenium 未安装，无法使用 OddsPortal 抓取功能"
+    
     if league_url is None:
         league_url = "https://www.oddsportal.com/matches/soccer/"
     
@@ -276,25 +286,39 @@ with tab2:
                     st.warning("⚠️ 未获取到数据")
     
     else:  # OddsPortal
-        st.markdown("""
-        ### OddsPortal 使用说明
-        - 抓取实时赔率数据
-        - 需要安装 Chrome 浏览器
-        - 可能需要 VPN
-        """)
-        
-        custom_url = st.text_input("自定义URL（可选）", placeholder="https://www.oddsportal.com/soccer/england/premier-league/")
-        
-        if st.button("🔄 开始抓取赔率", type="primary"):
-            with st.spinner("正在抓取..."):
-                url = custom_url if custom_url else None
-                data = scrape_oddsportal(url)
-                
-                if data and len(data) > 0:
-                    st.session_state['scraped_df'] = pd.DataFrame(data)
-                    st.success(f"✅ 成功抓取 {len(data)} 场比赛！")
-                else:
-                    st.warning("⚠️ 未抓取到数据")
+        if not SELENIUM_AVAILABLE:
+            st.warning("⚠️ Selenium 未安装，OddsPortal 抓取功能不可用")
+            st.info("如需使用此功能，请安装: `pip install selenium webdriver-manager`")
+        else:
+            st.markdown("""
+            ### OddsPortal 使用说明
+            - 抓取实时赔率数据
+            - 需要安装 Chrome 浏览器
+            - 可能需要 VPN
+            """)
+            
+            custom_url = st.text_input("自定义URL（可选）", placeholder="https://www.oddsportal.com/soccer/england/premier-league/")
+            
+            if st.button("🔄 开始抓取赔率", type="primary"):
+                with st.spinner("正在抓取..."):
+                    url = custom_url if custom_url else None
+                    result = scrape_oddsportal(url)
+                    
+                    # 处理返回值（可能是元组或列表）
+                    if isinstance(result, tuple):
+                        data, error_msg = result
+                        if error_msg:
+                            st.error(f"❌ {error_msg}")
+                        elif data and len(data) > 0:
+                            st.session_state['scraped_df'] = pd.DataFrame(data)
+                            st.success(f"✅ 成功抓取 {len(data)} 场比赛！")
+                        else:
+                            st.warning("⚠️ 未抓取到数据")
+                    elif result and len(result) > 0:
+                        st.session_state['scraped_df'] = pd.DataFrame(result)
+                        st.success(f"✅ 成功抓取 {len(result)} 场比赛！")
+                    else:
+                        st.warning("⚠️ 未抓取到数据")
     
     # 显示和编辑数据
     if 'scraped_df' in st.session_state:
