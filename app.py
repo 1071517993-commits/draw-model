@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
 import os
 
@@ -150,6 +149,15 @@ with tab2:
         })
         
         # =========================
+        # 强信号
+        # =========================
+        df['signal_score'] = 0
+        df.loc[df['best_EV'] > 1.08, 'signal_score'] += 2
+        df.loc[df['market_spread'] < 0.15, 'signal_score'] += 1
+        df.loc[abs(df['ah_diff']) < 0.25, 'signal_score'] += 1
+        df.loc[df['low_scoring'] == 1, 'signal_score'] += 1
+
+        # =========================
         # 今日最优组合
         # =========================
 
@@ -172,15 +180,6 @@ with tab2:
         # 控制最多4场
         combo = combo.head(4)
         
-        # =========================
-        # 强信号
-        # =========================
-        df['signal_score'] = 0
-        df.loc[df['best_EV'] > 1.08, 'signal_score'] += 2
-        df.loc[df['market_spread'] < 0.15, 'signal_score'] += 1
-        df.loc[abs(df['ah_diff']) < 0.25, 'signal_score'] += 1
-        df.loc[df['low_scoring'] == 1, 'signal_score'] += 1
-
         # =========================
         # 凯利
         # =========================
